@@ -1,0 +1,110 @@
+package com.example.myapplication
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.platform.LocalFocusManager
+import com.example.myapplication.ui.theme.MyApplicationTheme
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            MyApplicationTheme {
+                CalculatorScreen()
+            }
+        }
+    }
+}
+
+@Composable
+fun CalculatorScreen() {
+    var aText by remember { mutableStateOf("") }
+    var bText by remember { mutableStateOf("") }
+    var result by remember { mutableStateOf<String?>(null) }
+
+    val focusManager = LocalFocusManager.current
+
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        OutlinedTextField(
+            value = aText,
+            onValueChange = { aText = it },
+            label = { Text("Enter A") },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Next
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
+        OutlinedTextField(
+            value = bText,
+            onValueChange = { bText = it },
+            label = { Text("Enter B") },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Done
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = {
+                result = calculate(aText, bText) { a, b -> a + b }
+                focusManager.clearFocus()
+            }) {
+                Text("+")
+            }
+            Button(onClick = {
+                result = calculate(aText, bText) { a, b -> a - b }
+                focusManager.clearFocus()
+            }) {
+                Text("-")
+            }
+            Button(onClick = {
+                result = calculate(aText, bText) { a, b -> a * b }
+                focusManager.clearFocus()
+            }) {
+                Text("×")
+            }
+            Button(onClick = {
+                result = calculate(aText, bText) { a, b ->
+                    if (b == 0) null else a / b
+                }
+                focusManager.clearFocus()
+            }) {
+                Text("÷")
+            }
+        }
+
+        OutlinedTextField(
+            value = result?.toString() ?: "",
+            onValueChange = {},
+            label = { Text("Result") },
+            readOnly = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+fun calculate(aText: String, bText: String, op: (Int, Int) -> Int?): String? {
+    return try {
+        val a = aText.toInt()
+        val b = bText.toInt()
+        op(a, b)?.toString()
+    } catch (e: Exception) {
+        "Invalid input"
+    }
+}
